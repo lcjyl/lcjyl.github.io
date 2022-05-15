@@ -1,8 +1,20 @@
 title: 数据结构（C）
 
+categories:
+
+- 数据结构
+
+cover: https://cdn.jsdelivr.net/gh/lcjyl/images/img/structdata.jpg
+
+aplayer: true
+
 ---
 
 首先声明：本篇文章仅仅是个人笔记记录与拓展，并非个人原创，主要参考了B站UP主TyranLucifer的数据结构教程
+
+{% meting "486194136" "netease" "song" "autoplay" %}
+
+{% meting "1842025914" "netease" "song" %}
 
 [课程参考](https://www.bilibili.com/video/BV1W64y1z7jh?spm_id_from=333.999.0.0 )
 
@@ -2175,12 +2187,285 @@ int main(int argc, char *argv[])
 ### 先序线索二叉树
 
 ```C
-/**/
+
+//先序线索二叉树 类似于中序线索二叉树，只不过指针指向的是先序遍历的前驱和后继
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef struct TreeNode
+{
+    char data;
+    struct TreeNode *lchild;
+    struct TreeNode *rchild;
+    int ltag;
+    int rtag;
+}TreeNode;
+
+/**
+ * @brief 创建二叉树
+ * 
+ * @param T 
+ * @param data 
+ * @param idnex 
+ */
+void CreateTree(TreeNode **T, char *data, int *index)
+{
+    char ch;
+    ch =data[*index];
+    *index += 1;
+    if(ch == '#')
+    {
+        *T = NULL; //#代表空节点
+    }
+    else
+    {
+        *T = (TreeNode*)malloc(sizeof(TreeNode));
+        (*T)->data = ch;
+        (*T)->ltag = 0;
+        (*T)->rtag = 0;
+        CreateTree(&((*T)->lchild), data, index); //创建左子树
+        CreateTree(&((*T)->rchild), data, index); //创建右子树
+    }
+}
+/**
+ * @brief 先序线索二叉树线索化
+ * 
+ * @param T 当前节点
+ * @param pre T的前一节点
+ */
+void PreThreadTree(TreeNode *T, TreeNode **pre)
+{
+    if(T)
+    {
+        if(T->lchild == NULL)
+        {
+            T->ltag = 1;
+            T->lchild = *pre;
+        }
+        if(*pre != NULL && (*pre)->rchild == NULL)
+        {
+            (*pre)->rtag = 1;
+            (*pre)->rchild = T;
+        }
+        *pre = T;
+        if(T->ltag == 0) //这里不同于中序遍历，需要先考虑是否有左孩子，假设不考虑，当遍历到最左那个孩子时候，左孩子已经指向了它的前驱，若再将它的左孩子进行递归则会出错
+        {              
+            PreThreadTree(T->lchild, pre);
+        }
+        PreThreadTree(T->rchild, pre);
+    }
+
+}  
+/**
+ * @brief 获取下一个节点
+ * 
+ * @param node 
+ * @return TreeNode* 
+ */
+TreeNode *GetNext(TreeNode *node)
+{
+    //node->rtag==1:没有右孩子（已经线索化），即直接指向它的后继  node->ltag==1:没有左孩子
+    if(node->ltag == 1 || node->rtag == 1) 
+    {
+        return node->rchild;
+    }
+    else
+    {
+        return node->lchild;
+    }
+}
+/**
+ * @brief 输出先序线索二叉树
+ * 
+ * @param T 
+ */
+void PreThreadTreePrint(TreeNode *T)
+{
+    TreeNode *node = T;
+    for(;node != NULL; node = GetNext(node))
+    {
+        printf("%c ",node->data);
+    }
+    printf("\n");
+}
+
+int main(int argc, char *argv[])
+{
+    TreeNode *T;
+    TreeNode *pre = NULL;
+    int index = 0;
+    // CreateTree(&T, argv[1], &index);
+    char *s = "AB#C##D##";
+    CreateTree(&T, s, &index);
+    PreThreadTree(T, &pre);
+    printf("%c",pre->data);
+    printf("\n");
+    //pre已经指向最后一个节点，另其右孩子指向为空，这样Next函数遍历到它时候可直返回其右节点即NULL
+    pre->rtag = 1;
+    pre->rchild = NULL; 
+    PreThreadTreePrint(T);
+    return 0;
+}
 ```
 
 ### 后续线索二叉树
 
 ```C
-/**/
+
+//后续线索二叉树，前驱和后继指的是后续遍历的前驱后继
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef struct TreeNode
+{
+    char data;
+    struct TreeNode *lchild;
+    struct TreeNode *rchild;
+    struct TreeNode *parent; //记录该节点父节点
+    int ltag;
+    int rtag;
+}TreeNode;
+
+/**
+ * @brief 创建二叉树
+ * 
+ * @param T 
+ * @param data 
+ * @param idnex 
+ */
+void CreateTree(TreeNode **T, char *data, int *index, TreeNode *parent)
+{
+    char ch;
+    ch =data[*index];
+    *index += 1;
+    if(ch == '#')
+    {
+        *T = NULL; //#代表空节点
+    }
+    else
+    {
+        *T = (TreeNode*)malloc(sizeof(TreeNode));
+        (*T)->data = ch;
+        (*T)->ltag = 0;
+        (*T)->rtag = 0;
+        (*T)->parent = parent;
+        CreateTree(&((*T)->lchild), data, index, *T); //创建左子树
+        CreateTree(&((*T)->rchild), data, index, *T); //创建右子树
+    }
+}
+/**
+ * @brief 后续线索二叉树线索化
+ * 
+ * @param T 当前节点
+ * @param pre T的前一节点
+ */
+void PostThreadTree(TreeNode *T, TreeNode **pre)
+{
+    if(T)
+    {
+        PostThreadTree(T->lchild, pre);
+        PostThreadTree(T->rchild, pre);
+        if(T->lchild == NULL)
+        {
+            T->ltag = 1;
+            T->lchild = *pre;
+        }
+        if(*pre != NULL && (*pre)->rchild == NULL)
+        {
+            (*pre)->rtag = 1;
+            (*pre)->rchild = T;
+        }
+        *pre = T;
+    }
+}  
+
+TreeNode *GetFirst(TreeNode *T)
+{
+    //找寻第一个节点需要考虑最左边的节点有没有右孩子，若没有右孩子则它就是第一个节点，若有则以右子树节点为根继续寻找最左节点
+    while(T->ltag == 0) //先找到最左孩子
+    {
+        T = T->lchild; 
+    }
+    if(T->rtag == 0) //如果有右孩子则以其右孩子为根寻找最左边孩子
+    {
+        return GetFirst(T->rchild);
+    }
+    return T;
+}
+
+/**
+ * @brief 获取下一个节点
+ * 
+ * @param node 
+ * @return TreeNode* 
+ */
+TreeNode *GetNext(TreeNode *node)
+{
+    if(node->rtag == 1) //说明已经线索化，则其右孩子指向它的后继，也就是下一个节点
+    {
+        return node->rchild;
+    }
+    /*
+    1.现在节点时根节点，则next = NULL
+    2.是左孩子，那么判断父亲是否有右孩子，若没有则next = 父亲节点；若有则next = GetFirst(父亲节点->rchild)
+    3.若为右，则next = 父亲节点
+    */
+    else
+    {
+        //如果是根节点
+        if(node->parent == NULL)
+        {
+            return NULL;
+        }
+        //如果是右孩子:它父亲的右孩子是它自己，此时返回它父亲
+        else if(node->parent->rchild == node)
+        {
+            return node->parent;
+        }
+        else //左孩子
+        {
+            if(node->parent->rtag == 0) //如果父亲右子树不为空，则以父亲的右子树为根节点找到第一个节点
+            {
+                return GetFirst(node->parent->rchild);
+            }
+            else //若为空则返回它的父亲
+            {
+                return node->parent;
+            }
+        }
+    }
+}
+/**
+ * @brief 输出后序线索二叉树
+ * 
+ * @param T 
+ */
+void PostThreadTreePrint(TreeNode *T)
+{
+    TreeNode *node = GetFirst(T);
+    for(;node != NULL; node = GetNext(node))
+    {
+        printf("%c ",node->data);
+    }
+    printf("\n");
+}
+
+int main(int argc, char *argv[])
+{
+    TreeNode *T;
+    TreeNode *pre = NULL;
+    int index = 0;
+    // CreateTree(&T, argv[1], &index);
+    char *s = "AB#C##D##";
+    CreateTree(&T, s, &index, NULL);
+    PostThreadTree(T, &pre);
+    printf("%c",pre->data);
+    printf("\n");
+    //pre已经指向最后一个节点，另其右孩子指向为空，这样Next函数遍历到它时候可直返回其右节点即NULL
+    // pre->rtag = 1;
+    // pre->rchild = NULL;  //后序遍历中最后一个节点时根节点，它有左右孩子，不能对他进行修改
+    PostThreadTreePrint(T);
+    return 0;
+}
 ```
 
