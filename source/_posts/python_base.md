@@ -1,6 +1,7 @@
 ---
 title: Python的一些基础与语法
 aplayer: true
+cover: https://cdn.jsdelivr.net/gh/lcjyl/images@master/img/202207100305013.jpg
 ---
 {% meting "1383927243" "netease" "song" "autoplay" %}
 

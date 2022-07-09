@@ -1,20 +1,10 @@
 title: 数据结构（C）
 
-categories:
-
-- 数据结构
-
 cover: https://cdn.jsdelivr.net/gh/lcjyl/images/img/structdata.jpg
-
-aplayer: true
 
 ---
 
 首先声明：本篇文章仅仅是个人笔记记录与拓展，并非个人原创，主要参考了B站UP主TyranLucifer的数据结构教程
-
-{% meting "486194136" "netease" "song" "autoplay" %}
-
-{% meting "1842025914" "netease" "song" %}
 
 [课程参考](https://www.bilibili.com/video/BV1W64y1z7jh?spm_id_from=333.999.0.0 )
 
@@ -1574,7 +1564,7 @@ typedef struct TreeNode
  */
 typedef struct QueueNode
 {
-    TreeNode *data;
+  	TreeNode *data;
     struct QueueNode* pre;
     struct QueueNode* next;
 }QueueNode;
@@ -2006,6 +1996,8 @@ int main(int argc, char *argv[])
 
 ## 线索二叉树
 
+### 中序线索二叉树
+
 *前驱节点：对一棵二叉树进行中序遍历，遍历后的顺序，当前节点的前一个节点为该节点的前驱节点；*
 
 *后继节点：对一棵二叉树进行中序遍历，遍历后的顺序，当前节点的后一个节点为该节点的后继节点；*
@@ -2026,19 +2018,17 @@ int main(int argc, char *argv[])
 
 [参考链接](https://blog.csdn.net/kcycxy/article/details/109729998 )
 
-### 中序线索二叉树
-
 ```C
 #include<stdio.h>
 #include<stdlib.h>
 
 typedef struct TreeNode
 {
-  char data;
-  struct TreeNode *lchild;
-  struct TreeNode *rchild;
-  int ltag;
-  int rtag;
+    char data;
+    struct TreeNode *lchild;
+    struct TreeNode *rchild;
+    int ltag;
+    int rtag;
 }TreeNode;
 
 /**
@@ -2050,22 +2040,22 @@ typedef struct TreeNode
  */
 void CreateTree(TreeNode **T, char *data, int *index)
 {
-  char ch;
-  ch =data[*index];
-  *index += 1;
-  if(ch == '#')
-  {
-    *T = NULL; //#代表空节点
-  }
-  else
-  {
-    *T = (TreeNode*)malloc(sizeof(TreeNode));
-    (*T)->data = ch;
-    (*T)->ltag = 0;
-    (*T)->rtag = 0;
-    CreateTree(&((*T)->lchild), data, index); //创建左子树
-    CreateTree(&((*T)->rchild), data, index); //创建右子树
-  }
+    char ch;
+    ch =data[*index];
+    *index += 1;
+    if(ch == '#')
+    {
+        *T = NULL; //#代表空节点
+    }
+    else
+    {
+        *T = (TreeNode*)malloc(sizeof(TreeNode));
+        (*T)->data = ch;
+        (*T)->ltag = 0;
+        (*T)->rtag = 0;
+        CreateTree(&((*T)->lchild), data, index); //创建左子树
+        CreateTree(&((*T)->rchild), data, index); //创建右子树
+    }
 }
 
 /**
@@ -2096,22 +2086,22 @@ void InOrder(TreeNode* T)
 
 void InThreadTree(TreeNode *T, TreeNode **pre)
 {
-  if(T)
-  {
-    InThreadTree(T->lchild, pre); //递归左子树线索化
-    if(T->lchild == NULL) //没有左孩子
+    if(T)
     {
-      T->ltag = 1; //前驱线索
-      T->lchild = *pre; //左孩子的指针指向前驱
+        InThreadTree(T->lchild, pre); //递归左子树线索化
+        if(T->lchild == NULL) //没有左孩子
+        {
+        T->ltag = 1; //前驱线索
+        T->lchild = *pre; //左孩子的指针指向前驱
+        }
+        if(*pre != NULL && (*pre)->rchild == NULL) //前驱不为空，且没有右孩子
+        {
+        (*pre)->rtag = 1; //后继线索
+        (*pre)->rchild = T; //前驱的右孩子指向后继，当前节点T
+        }
+        *pre = T;
+        InThreadTree(T->rchild, pre); //递归右子树的线索化
     }
-    if(*pre != NULL && (*pre)->rchild == NULL) //前驱不为空，且没有右孩子
-    {
-      (*pre)->rtag = 1; //后继线索
-      (*pre)->rchild = T; //前驱的右孩子指向后继，当前节点T
-    }
-    *pre = T;
-    InThreadTree(T->rchild, pre); //递归右子树的线索化
-  }
 }
 /**
  * @brief 获取第一个值：线索化之后最左的那个节点（左孩子为空）肯定指向了它的前驱
@@ -2121,11 +2111,11 @@ void InThreadTree(TreeNode *T, TreeNode **pre)
  */
 TreeNode* GetFirst(TreeNode *T)
 {
-  while(T->ltag == 0)
-  {
-    T = T->lchild;
-  }
-  return T;
+    while(T->ltag == 0)
+    {
+        T = T->lchild;
+    }
+    return T;
 }
 /**
  * @brief Get the Next object
@@ -2135,52 +2125,52 @@ TreeNode* GetFirst(TreeNode *T)
  */
 TreeNode *GetNext(TreeNode *node)
 {
-  /*
-  举例：AB#C##D## 中序遍历为BCAD且B节点左孩子为空，C节点左右孩子都空，D左右孩子都空 
-  所以B节点左孩子指向它的前驱，没有即NULL，C的左指向B，C的右指向A   D的左指向A，D的右指向NULL
-  线索化后，查找该节点的下一个即：找到右孩子指向了后继的节点
-  如：假设找B节点的下一个：因为它的rtag == 0即还有右孩子，故找它的右孩子C节点作为根节点的最左的那个值，因为没有左孩子，故直接返回，也就是返回了C节点
-  再找C的下一个节点，它的右指向了后继A，也就是rtag==1，故直接返回它的后继A节点， 再找A节点的下一个，有右孩子走else，找以D为根节点的树最左的那个，这里
-  也就是它自己，故将D节点返回，再找D节点下一个发现为空NULL--也就是遍历完成了
-  */
-  if(node ->rtag == 1) 
-  {
-    return node->rchild;
-  }
-  else
-  {
-    return GetFirst(node->rchild);
-  }
+    /*
+    举例：AB#C##D## 中序遍历为BCAD且B节点左孩子为空，C节点左右孩子都空，D左右孩子都空 
+    所以B节点左孩子指向它的前驱，没有即NULL，C的左指向B，C的右指向A   D的左指向A，D的右指向NULL
+    线索化后，查找该节点的下一个即：找到右孩子指向了后继的节点
+    如：假设找B节点的下一个：因为它的rtag == 0即还有右孩子，故找它的右孩子C节点作为根节点的最左的那个值，因为没有左孩子，故直接返回，也就是返回了C节点
+    再找C的下一个节点，它的右指向了后继A，也就是rtag==1，故直接返回它的后继A节点， 再找A节点的下一个，有右孩子走else，找以D为根节点的树最左的那个，这里
+    也就是它自己，故将D节点返回，再找D节点下一个发现为空NULL--也就是遍历完成了
+    */
+    if(node ->rtag == 1) //已经线索化，下一个即是指向它的后继即可
+    {
+        return node->rchild;
+    }
+    else
+    {
+        return GetFirst(node->rchild);
+    }
 }
 
 void InThreadTreePrint(TreeNode *T)
 {
-  for(TreeNode *node = GetFirst(T);node != NULL;node = GetNext(node))
-  {
-    printf("%c ",node->data);
-  }
-  printf("\n");
+    for(TreeNode *node = GetFirst(T);node != NULL;node = GetNext(node))
+    {
+        printf("%c ",node->data);
+    }
+    printf("\n");
 }
 
 int main(int argc, char *argv[])
 {
-  TreeNode *T;
-  TreeNode *pre = NULL;
-  int index = 0;
-  // CreateTree(&T, argv[1], &index);
-  char *s = "AB#C##D##";
-  CreateTree(&T, s, &index);
-  InOrder(T);
-  printf("\n");
+    TreeNode *T;
+    TreeNode *pre = NULL;
+    int index = 0;
+    // CreateTree(&T, argv[1], &index);
+    char *s = "AB#C##D##";
+    CreateTree(&T, s, &index);
+    InOrder(T);
+    printf("\n");
 
-  InThreadTree(T, &pre);
-  printf("%c",pre->data);
-  printf("\n");
-  //pre已经指向最后一个节点，另其右孩子指向为空，这样Next函数遍历到它时候可直返回其右节点即NULL
-  pre->rtag = 1;
-  pre->rchild = NULL; 
-  InThreadTreePrint(T);
-  return 0;
+    InThreadTree(T, &pre);
+    printf("%c",pre->data);
+    printf("\n");
+    //pre已经指向最后一个节点，另其右孩子指向为空，这样Next函数遍历到它时候可直返回其右节点即NULL
+    pre->rtag = 1;
+    pre->rchild = NULL; 
+    InThreadTreePrint(T);
+    return 0;
 }
 ```
 
@@ -2467,5 +2457,698 @@ int main(int argc, char *argv[])
     PostThreadTreePrint(T);
     return 0;
 }
+```
+
+## 二叉排序树
+
+一棵空树，或者是具有下列性质的二叉树：
+
+- 若左子树不空，则左子树上所有结点的值均小于它的根结点的值；
+- 若右子树不空，则右子树上所有结点的值均大于它的根结点的值；
+- 左、右子树也分别为二叉排序树
+
+没有键值相同的结点
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct TreeNode
+{
+    int data;
+    struct TreeNode *lchild; //左孩子
+    struct TreeNode *rchild; //右孩子
+}TreeNode;
+
+/**
+ * @brief 搜索
+ * 
+ * @param T 需要搜索的树
+ * @param data 搜索的值
+ * @return TreeNode* 搜索到的节点
+ */
+TreeNode* BstSearch(TreeNode *T, int data)
+{
+    if(T)
+    {
+        if(T->data == data)
+        {
+            return T;
+        }
+        else if(data < T->data) 
+        {
+            return BstSearch(T->lchild, data);
+        }
+        else
+        {
+            return BstSearch(T->rchild, data);
+        }
+    }
+    else
+    {
+        return NULL;
+    }
+}
+/**
+ * @brief 二叉搜索树插入节点
+ * 
+ * @param T 
+ * @param data 
+ */
+void BstInsert(TreeNode **T, int data)
+{
+    if(*T == NULL)
+    {
+        *T = (TreeNode*)malloc(sizeof(TreeNode));
+        (*T)->data = data;
+        (*T)->lchild = NULL;
+        (*T)->rchild = NULL;
+    }
+    else if(data == (*T)->data) //不允许有相同节点
+    {
+        return;
+    }
+    else if(data <(*T)->data) //值小于节点往左走
+    {
+        BstInsert(&((*T)->lchild), data);
+    }
+    else //值大于节点往右走
+    {
+        BstInsert(&((*T)->rchild), data);
+    }
+}
+
+/**
+ * @brief 中序遍历：简言之：先处理左孩子->办事->处理右孩子 左->中->右
+ * 
+ * @param T 
+ */
+void InOrder(TreeNode *T)
+{
+    if(T == NULL)
+    {
+        return;
+    }
+    else
+    {
+        InOrder(T->lchild); //打印左孩子
+        printf("%d ", T->data);
+        InOrder(T->rchild); //最后打印右孩子
+    }
+}
+
+int main()
+{
+    TreeNode *T = NULL;
+    int num[6] = {8, 6, 10, 9, 11, 23};
+    int i = 0;
+    for(i = 0;i < 6;i++)
+    {
+        BstInsert(&T, num[i]);
+    }
+    InOrder(T); //我们会发现中序遍历时候二叉搜索树的值为从小到大
+    printf("\n");
+    TreeNode *node = BstSearch(T, 11);
+    if(node)
+    {
+        printf("查到此值：%d\n", node->data);
+    }
+    else
+    {
+        printf("抱歉查不到此值\n");
+    }
+    return 0;
+}
+```
+
+## 平衡二叉树
+
+条件一：它必须是二叉查找树。
+
+条件二：每个节点的左子树和右子树的高度差至多为1
+
+LL型调整：由于在A的左孩子(L)的左子树(L)上插入新结点，使原来平衡二叉树变得不平衡
+
+RR型调整：由于在A的右孩子(L)的右子树(L)上插入新结点，使原来平衡二叉树变得不平衡
+
+LR型调整：由于在A的左孩子(L)的右子树(L)上插入新结点，使原来平衡二叉树变得不平衡
+
+RL型调整：由于在A的右孩子(L)的左子树(L)上插入新结点，使原来平衡二叉树变得不平衡
+
+[参考链接](http://t.csdn.cn/1A98L)
+
+```c
+//注意：下述代码中没说名新根旧根单单一个根字时候代表最初的根节点
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct TreeNode
+{
+    int data;
+    struct TreeNode *lchild; //左孩子
+    struct TreeNode *rchild; //右孩子
+    int height;
+}TreeNode;
+
+/**
+ * @brief 获取树高度
+ * 
+ * @param T 
+ * @return int 
+ */
+int GetHight(TreeNode *T)
+{
+    if(T == NULL)
+    {
+        return 0;
+    }
+    return T->height;
+}
+/**
+ * @brief 获取两个值较大值
+ * 
+ * @param a 
+ * @param b 
+ * @return int 
+ */
+int max(int a, int b)
+{
+    return a > b? a : b;
+}
+
+/**
+ * @brief LL调整
+ * 
+ * @param node 
+ * @param root 
+ */
+
+void LLRotation(TreeNode *node, TreeNode **root)
+{
+    TreeNode *temp = node->lchild; //记住根节点的左（新根）
+    node->lchild = temp->rchild; //根的右不变，根的左的右变为根节点的左
+    temp->rchild = node; //根变为根的左孩子的右右孩子
+    //新根和源根高度都会改变
+    node->height = max(GetHight(node->lchild), GetHight(node->rchild)) + 1;
+    temp->height = max(GetHight(temp->lchild), GetHight(temp->rchild)) + 1;
+    *root = temp; //新根赋值给源根
+
+}
+
+/**
+ * @brief RR调整
+ * 
+ * @param node 
+ * @param root 
+ */
+void RRRotation(TreeNode *node, TreeNode **root)
+{
+    TreeNode *temp = node->rchild; //记住根孩子的右（新根）
+    node->rchild = temp->lchild; //根的左不变，根的右孩子的左变为根的右孩子
+    temp->lchild = node; //根变为根的右孩子的左孩子
+    //新根和源根高度都会改变
+    node->height = max(GetHight(node->lchild), GetHight(node->rchild)) + 1;
+    temp->height = max(GetHight(temp->lchild), GetHight(temp->rchild)) + 1;
+    *root = temp; //新根赋值给源根
+}
+
+/**
+ * @brief 平衡二叉树插入
+ * 二叉搜索树类比插入后多加判断是否需要重新使其平衡
+ * @param T 
+ * @param data 
+ */
+void AvlInsert(TreeNode **T, int data)
+{
+    if(*T == NULL)
+    {
+        *T = (TreeNode*)malloc(sizeof(TreeNode));
+        (*T)->data = data;
+        (*T)->height = 0;
+        (*T)->lchild = NULL;
+        (*T)->rchild = NULL;
+    }
+    else if(data < (*T)->data) //LL或LR调整
+    {
+        AvlInsert(&((*T)->lchild), data);
+        int LHeight = GetHight((*T)->lchild);//左孩子高度
+        int RHeight = GetHight((*T)->rchild);//右孩子高度
+        if(LHeight - RHeight == 2) //高度差为2时候
+        {
+            if(data < (*T)->lchild->data) //插入值小于该位置根的左，由二叉搜索树知道其插入在该根的左的左位置
+            {
+                //LL调整
+                LLRotation(*T, T);
+            }
+            else  //由上知不是LL就是LR
+            {
+                //LR调整 先对其的左孩子进行RR调整在对其LL调整
+                RRRotation((*T)->lchild, &(*T)->lchild);
+                LLRotation(*T, T);
+            }
+        } 
+    }
+    else if(data > (*T)->data)
+    {
+        AvlInsert(&((*T)->rchild), data);
+        int LHeight = GetHight((*T)->lchild);//左孩子高度
+        int RHeight = GetHight((*T)->rchild);//右孩子高度
+        if(RHeight - LHeight == 2) //高度差为2时候需要重新平衡
+        {
+            if(data > (*T)->rchild->data) //同上理解，大于它的右会插入到它的右的右孩子处
+            {
+                //RR调整
+                RRRotation(*T, T);
+            }
+            else
+            {
+                //RL调整 先对其右孩子进行LL调整，在对其RR调整
+                LLRotation((*T)->rchild , &(*T)->rchild);
+                RRRotation(*T, T);
+            }
+        }
+    }
+    (*T)->height = max(GetHight((*T)->lchild), GetHight((*T)->rchild)) + 1;
+}
+
+/**
+ * @brief 先序遍历 简言之：先办事->处理左孩子->处理右孩子 中->左->右
+ * 
+ * @param T 
+ */
+void PreOrder(TreeNode *T)
+{
+    if(T == NULL)
+    {
+        return;
+    }
+    else
+    {
+        printf("%d ", T->data); //先打印
+        PreOrder(T->lchild); //在打印左孩子
+        PreOrder(T->rchild); //最后打印右孩子
+    }
+}
+
+int main()
+{
+    TreeNode *T = NULL;
+    int nums[5] = {1,2,3,4,5};
+    int i = 0;
+    for(i = 0;i < 5;i++)
+    {
+        AvlInsert(&T, nums[i]);
+    }
+    PreOrder(T);
+    return 0;
+}
+
+```
+
+## 哈夫曼树（最优二叉树）
+
+[百度百科链接](https://baike.baidu.com/item/%E5%93%88%E5%A4%AB%E6%9B%BC%E6%A0%91/2305769?fr=aladdin)
+
+[参考文章链接](http://t.csdn.cn/7A1tK)
+
+```c
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef struct TreeNode
+{
+    int weight; //权值
+    int parent;
+    int lchild;
+    int rchild;
+}TreeNode;
+
+typedef struct HFTree
+{
+    TreeNode *data; 
+    int length; //长度
+}HFTree;
+
+/**
+ * @brief 初始化
+ * 注意：最后节点数为权值数 * 2 - 1
+ * @param weight 权值传入
+ * @param length 长度
+ * @return HFTree* 
+ */
+HFTree* InitHFTree(int *weight, int length)
+{
+    HFTree *T = (HFTree*)malloc(sizeof(HFTree));
+    T->data = (TreeNode*)malloc(sizeof(TreeNode) * (2 * length - 1)); //别忘记了结构体内部指针域另外分配空间
+    T->length = length;
+    int i = 0;
+    for(i = 0;i < length;i++)
+    {
+        T->data[i].weight = weight[i];
+        T->data[i].parent = 0;
+        T->data[i].lchild = -1;
+        T->data[i].rchild = -1;
+    }
+    return T;
+}
+
+/**
+ * @brief 选取两个最小值（并未选过的即parent为0）
+ * 
+ * @param T 
+ * @return int* 
+ */
+int *SelctMin(HFTree *T)
+{
+    int min = 10000;
+    int secondMin = 10000;
+    int minIndex;
+    int secondIndex;
+    int i = 0;
+    for(i = 0;i < T->length;i++)
+    {
+        if(T->data[i].parent == 0) //父亲节点初始化时候全为0
+        {
+            if(T->data[i].weight < min)
+            {
+                min = T->data[i].weight;
+                minIndex = i; //索引值
+            }
+        }
+    }
+    for(i = 0;i < T->length;i++)
+    {
+        if(T->data[i].parent == 0 && i != minIndex) //没使用过，且不能是刚刚选择的最小的
+        {
+            if(T->data[i].weight < secondMin)
+            {
+                secondMin = T->data[i].weight;
+                secondIndex = i; //索引值
+            }
+        }
+    }
+    int *res = (int*)malloc(sizeof(int) * 2);
+    res[0] = minIndex;
+    res[1] = secondIndex;
+    return res;
+}
+/**
+ * @brief 创建哈夫曼树
+ * 
+ * @param T 
+ */
+void CreateHFTree(HFTree *T)
+{
+    int *res;
+    int min;
+    int secondMin;
+    int length = T->length * 2- 1;
+    int i = 0;
+    for(i = T->length; i < length;i++) //最后一个索引值后面开始
+    {
+        res = SelctMin(T);//选择两个最小的
+        min = res[0];
+        secondMin = res[1];
+        T->data[i].weight = T->data[min].weight + T->data[secondMin].weight;
+        T->data[i].lchild = min; //新节点的左为较小的那个
+        T->data[i].rchild = secondMin;
+        T->data[i].parent = 0; //加入筛选节点中
+        T->data[min].parent = i;
+        T->data[secondMin].parent = i;
+        T->length++; //长度加一
+    }
+}
+/**
+ * @brief 先序遍历
+ * 
+ * @param T 
+ * @param index 
+ */
+void PreOrder(HFTree *T, int index)
+{
+    if(index != -1) //初始化时候 空的左，右孩子-1
+    {
+        printf("%d ",T->data[index].weight);
+        PreOrder(T, T->data[index].lchild);
+        PreOrder(T, T->data[index].rchild);
+    }
+}
+int main()
+{
+    int weight[5] = {6, 4, 5, 3, 8};
+    HFTree *T = InitHFTree(weight, 5);
+    CreateHFTree(T);
+    PreOrder(T, T->length - 1); //根节点在最后一个索引值，也就是len-1处
+}
+```
+
+# 图
+
+## 图的创建（无向）
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAXSIZE 5
+
+typedef struct Queue
+{
+    int front; //队首位置
+    int rear; //队尾位置
+    int data[MAXSIZE];
+}Queue;
+
+typedef struct Graph
+{
+    char *vexs; //节点
+    int **arcs; //边
+    int vexNum; //节点数
+    int arcNum; //边数
+}Graph;
+/**
+ * @brief 图初始化
+ * 
+ * @param vexNum 
+ * @return Graph* 
+ */
+
+
+/**
+ * @brief 循环队初始化
+ * 
+ * @return Queue* 
+ */
+Queue* InitQueue()
+{
+    Queue *Q = (Queue*)malloc(sizeof(Queue));
+    Q->front = 0;
+    Q->rear = 0;
+    return Q;
+}
+/**
+ * @brief 判断队是否满了
+ * 
+ * @param Q 
+ * @return int 0：没满 1：满了
+ */
+int IsFull(Queue *Q)
+{   
+    /*
+    若满了尾巴+1对最大长度取余永远等于头
+    */
+    if((Q->rear + 1) % MAXSIZE == Q->front)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+/**
+ * @brief 是否空队
+ * 
+ * @param Q 
+ * @return int 0：否 1：是
+ */
+int IsEmpty(Queue *Q)
+{
+    if(Q->front == Q->rear)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+/**
+ * @brief 入队（最后一个位置留空）
+ * 
+ * @param Q 
+ * @param data 入队的值 
+ * @return int 1：成功 0：队已满
+ */
+int EnQueue(Queue *Q, int data)
+{
+    if(IsFull(Q))
+    {
+        printf("抱歉，队已满。");
+        return 0;
+    }
+    else
+    {
+        Q->data[Q->rear] = data;
+        Q->rear = (Q->rear + 1) % MAXSIZE;//若刚刚已经指向了最后一个位置下标，再往后则跳到第一个位置下标
+        return 1;
+    }
+}
+/**
+ * @brief 删除队首
+ * 
+ * @param Q 
+ * @return int 返回队首值
+ */
+int DeQueue(Queue *Q)
+{
+    if(IsEmpty(Q))
+    {
+        printf("队已空\n");
+        return -1;
+    }
+    else
+    {
+        int data = Q->data[Q->front];
+        Q->front = (Q->front + 1) % MAXSIZE; //同上理
+        return data;
+    }
+}
+
+Graph* InitGraph(int vexNum)
+{
+    Graph *G = (Graph*)malloc(sizeof(Graph));
+    G->vexs = (char*)malloc(sizeof(char) * vexNum); //节点开辟空间
+    G->arcs = (int**)malloc(sizeof(int*) * vexNum); //为二级指针开辟空间
+    int i = 0;
+    for(i = 0;i < vexNum;i++)
+    {
+        G->arcs[i] = (int*)malloc(sizeof(int) * vexNum); //为一级指针块开辟空间
+    }
+    G->vexNum = vexNum; //节点数
+    G->arcNum = 0;  //边数初始化为0
+    return G;
+}
+/**
+ * @brief 图的创建
+ * 
+ * @param G 
+ * @param vexs 节点
+ * @param arcs 边
+ */
+
+void CreateGraph(Graph *G, char *vexs, int *arcs)
+{
+    int i = 0, j = 0;    
+    for(i = 0;i <G->vexNum;i++)
+    {
+        G->vexs[i] = vexs[i]; //节点赋值
+        for(j = 0; j < G->vexNum; j++)
+        {
+            G->arcs[i][j] = *(arcs + i * G->vexNum + j); //给边赋值
+            //二维数组强制转化为了一级指针，故赋值如上，若用二级指针，则赋值语句如下
+            //G->arcs[i][j] = *(*(arcs + i) + j); 传入参数应为数组指针即 int(*arcs)[5]来接收
+            if(G->arcs[i][j] != 0)
+            {
+                G->arcNum++; //边数+1
+            }
+        }
+    }
+    G->arcNum /= 2; //因为是无向图：例a-b 和b-a 为同一条边故总数量应除以二
+}
+
+//DFS：深度优先遍历，取一个节点开始访问，访问它所能到达的节点，一直重复下去（不能走走过的节点），若所访问到该节点走路A无果则返回该节点寻找其它路往下下走
+/**
+ * @brief 深度优先遍历
+ * 
+ * @param G 需要遍历的图
+ * @param visited 用来标记该节点是否遍历过（1：遍历过，0：没有遍历）
+ * @param index 开始遍历的节点
+ */
+void DFS(Graph *G, int *visited, int index)
+{
+    printf("%c  ",G->vexs[index]);
+    visited[index] = 1;
+    int i = 0;
+    for(i = 0;i < G->vexNum;i++)
+    {
+        if(G->arcs[index][i] == 1 && !visited[i]) //G->arcs[index][i] == 1：有边可到达下个节点 !visited[i]：下个节点没遍历过
+        {
+            DFS(G, visited, i); //把下个节点对应的索引值进行递归遍历
+        }
+    }
+}
+//BFS：广度优先遍历，类似于层次遍历，把每个节点所能到达的节点都先遍历，然后入队，依次判断这些节点是否具备有未遍历节点
+//     若有则将其遍历再入队，直到队空
+/**
+ * @brief 广度优先遍历
+ * node:使用BFS时注意队的最大长度与图一个节点所能到达最多节点的值得关系，队长度应大于等于一个节点的边数
+ * @param G 
+ * @param visited 节点遍历标志
+ * @param index 遍历初始节点
+ */
+void BFS(Graph *G, int *visited, int index)
+{
+    Queue *Q = InitQueue();
+    printf("%c  ",G->vexs[index]);
+    visited[index] = 1;
+    EnQueue(Q, index); //将该索引值入队
+    int i = 0, j = 0;
+    while(!IsEmpty(Q))
+    {
+        i = DeQueue(Q); //出队获取该节点索引值
+        for(j = 0;j < G->vexNum;j++)
+        {
+            //假设从A节点遍历，A可到达B、C、D， 此时该循环已经遍历了B、C、D， 然后依次出队遍历，看是否有未遍历的，若有将其入队然后再接着不断出队，知道队空
+            if(G->arcs[i][j] == 1 && !visited[j]) //G->arcs[index][i] == 1：有边可到达下个节点 !visited[i]：下个节点没遍历过
+            {
+                printf("%c  ",G->vexs[j]);
+                visited[j] = 1;
+                EnQueue(Q, j);
+            }
+        }
+    }
+}
+
+int main()
+{
+    Graph *G = InitGraph(5);
+    int *visited = (int*)malloc(sizeof(int) * G->vexNum); //用于标记节点是否遍历过
+    int i = 0;
+    for(i = 0;i < G->vexNum;i++)
+    {
+        visited[i] = 0; //0代表未遍历
+    }
+    //下述改图表示：可看为横竖皆为ABCDE 其中对应值为1的为可通（例如第一行表示：A可通B、C、D ）
+    int arcs[5][5] = {
+        0,1,1,1,0,
+        1,2,1,1,1,
+        1,1,0,0,0,
+        1,1,0,0,1,
+        0,1,0,1,0};
+    CreateGraph(G,"ABCDE",(int*)arcs); //强制转化为一级指针
+    DFS(G,visited,0);
+    printf("\n");
+    //重新初始化标志
+    for(i = 0;i < G->vexNum;i++)
+    {
+        visited[i] = 0; //0代表未遍历
+    }
+    BFS(G,visited,0);
+    return 0;
+}
+
+
 ```
 
